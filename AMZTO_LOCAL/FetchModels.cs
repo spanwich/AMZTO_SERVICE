@@ -16,6 +16,7 @@ namespace AMZTO_LOCAL
     public class FetchDbData
     {
         private datasourceContext db = new datasourceContext();
+        private UploadContext _db = new UploadContext();
 
         /// <summary>
         /// Do web crawling operation, get pure data then call PutDataSource to make a Datasource lists.
@@ -164,12 +165,16 @@ namespace AMZTO_LOCAL
                                                 LinkLists.ProductID = dr.ProductID;
                                                 LinkLists.ProductName = dr.ProductName;
                                                 LinkLists.Remarks = dr.ShopName;
+                                                LinkLists.UserID = "1";
+                                                LinkLists.LinkID = 1;
                                                 //Check if sourcesLinks Exists
                                                 var query = (from p in db.itemDataSource
                                                              where p.ProductLink == LinkLists.ProductLink &&
                                                                     p.ItemSize == LinkLists.ItemSize &&
                                                                     p.ItemColor == LinkLists.ItemColor &&
-                                                                    p.MetalType == LinkLists.MetalType
+                                                                    p.MetalType == LinkLists.MetalType &&
+                                                                    p.UserID == "1" &&
+                                                                    p.LinkID == 1
                                                              select p).ToList();
                                                 //foreach link - getproducts informations
                                                 if (!query.Any())
@@ -183,17 +188,10 @@ namespace AMZTO_LOCAL
                                 }
                             }
                         }
-                        else
-                        {
-                            Console.WriteLine("NULL : " + dr.ProductName.ToString());
-                        }
-                        //if dr = null, do nothing.
                     }
                 }
                 catch (Exception ex)
                 {
-                    //saveLogFile.logging("FetchAllLinks error", ex.ToString());
-                    Console.WriteLine("Error : " + ex.ToString());
                     return ex.ToString();
                 }
 

@@ -177,44 +177,44 @@ namespace AMZTO_LOCAL
                 _item.isStock = false;
             }
             _item.isStock = true;
-            try
+            //try
+            //{
+            //set main Image
+            HtmlNode mainImage_node = document.DocumentNode.SelectSingleNode("//div[@id='magnifier']/div[1]/a/img");
+            if (mainImage_node != null)
             {
-                //set main Image
-                HtmlNode mainImage_node = document.DocumentNode.SelectSingleNode("//div[@id='magnifier']/div[1]/a/img");
-                if (mainImage_node != null)
+                string words = mainImage_node.Attributes["src"].Value;
+                int index = words.LastIndexOf("_");
+                if (index > 0)
                 {
-                    string words = mainImage_node.Attributes["src"].Value;
-                    int index = words.LastIndexOf("_");
-                    if (index > 0)
-                    {
-                        words = words.Substring(0, index);
-                    }
-                    _item.ImageLink = words;
+                    words = words.Substring(0, index);
                 }
-                //get item descriptions
-                HtmlNode desc_node = document.DocumentNode.SelectSingleNode("//div[@id='j-product-desc']");
-                if (desc_node != null)
-                    _item.Descriptions.AddRange(getDescription(desc_node.InnerHtml));
-
-                //get size info
-                HtmlNode desc_node2 = document.DocumentNode.SelectSingleNode("//div[@id='j-product-info-sku']");
-                if (desc_node2 != null)
-                    _item.Specifications.Add(getStyleAndSize(desc_node2.InnerHtml, _item));
-
-                //get Price
-                HtmlNode price_node = document.DocumentNode.SelectSingleNode("//*[@class='product-price-main']");
-                if (price_node != null)
-                    getPrice(price_node.InnerHtml, _item);
-
-                //get small image
-                HtmlNode image_nodes = document.DocumentNode.SelectSingleNode("//*[@id='j-image-thumb-list']");
-                if (image_nodes != null)
-                    _item.smallImage.AddRange(getSmallImage(image_nodes.InnerHtml, _item));
+                _item.ImageLink = words;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Parse Item Informations", "Error : " + ex.ToString());
-            }
+            //get item descriptions
+            HtmlNode desc_node = document.DocumentNode.SelectSingleNode("//div[@id='j-product-desc']");
+            if (desc_node != null)
+                _item.Descriptions.AddRange(getDescription(desc_node.InnerHtml));
+
+            //get size info
+            HtmlNode desc_node2 = document.DocumentNode.SelectSingleNode("//div[@id='j-product-info-sku']");
+            if (desc_node2 != null)
+                _item.Specifications.Add(getStyleAndSize(desc_node2.InnerHtml, _item));
+
+            //get Price
+            HtmlNode price_node = document.DocumentNode.SelectSingleNode("//*[@class='product-price-main']");
+            if (price_node != null)
+                getPrice(price_node.InnerHtml, _item);
+
+            //get small image
+            HtmlNode image_nodes = document.DocumentNode.SelectSingleNode("//*[@id='j-image-thumb-list']");
+            if (image_nodes != null)
+                _item.smallImage.AddRange(getSmallImage(image_nodes.InnerHtml, _item));
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine("Parse Item Informations", "Error : " + ex.ToString());
+            //}
         }
 
         public static List<itemDescriptionsSet> getDescription(String html)
@@ -242,7 +242,7 @@ namespace AMZTO_LOCAL
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Parse Descriptions Error : " + ex.ToString());
+                    //Console.WriteLine("Parse Descriptions Error : " + ex.ToString());
                 }
             }
             return result;
@@ -253,7 +253,7 @@ namespace AMZTO_LOCAL
             itemSpecificationsSet itemSpecifications = new itemSpecificationsSet();
             if (!string.IsNullOrEmpty(html))
             {
-                Console.WriteLine("Parse Style&Size\n");
+                //Console.WriteLine("Parse Style&Size\n");
                 HtmlDocument document = new HtmlDocument();
                 document.LoadHtml(html);
                 try
@@ -298,19 +298,19 @@ namespace AMZTO_LOCAL
                             }
                             else
                             {
-                                itemSpecifications.MetalColor.Add(new itemVaraintsSet() { bigpic = "No Data", metalType = node.InnerText });
+                                itemSpecifications.MetalColor.Add(new itemVaraintsSet() { bigpic = "No Image", metalType = node.InnerText });
                             }
                         }
                     }
                     else
                     {
-                        itemSpecifications.MetalColor.Add(new itemVaraintsSet() { bigpic = "No Data", metalType = "No Data" });
+                        itemSpecifications.MetalColor.Add(new itemVaraintsSet() { bigpic = "No Image", metalType = "No Data" });
                     }
                 }
 
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Parse Style&Size Error : " + ex.ToString());
+                    //Console.WriteLine("Parse Style&Size Error : " + ex.ToString());
                 }
             }
             return itemSpecifications;
@@ -357,7 +357,7 @@ namespace AMZTO_LOCAL
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Small Image Error : " + ex.ToString());
+                    //Console.WriteLine("Small Image Error : " + ex.ToString());
                 }
             }
             return result;
@@ -369,7 +369,7 @@ namespace AMZTO_LOCAL
             {
                 HtmlDocument document = new HtmlDocument();
                 document.LoadHtml(html);
-                Console.WriteLine("Parse Price\n");
+                //Console.WriteLine("Parse Price\n");
                 //color
                 try
                 {//*[@id="img"]
@@ -378,7 +378,7 @@ namespace AMZTO_LOCAL
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Parse Price Error : " + ex.ToString());
+                    //Console.WriteLine("Parse Price Error : " + ex.ToString());
                 }
             }
         }
@@ -442,19 +442,6 @@ namespace AMZTO_LOCAL
         }
         #endregion
 
-        //private static string getStringFromUrl(String URL)
-        //{
-        //    Thread.Sleep(2000);
-        //    using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
-        //    {
-        //        //client.DownloadFile("URL", @"D:\localfile.html");
-        //        Console.WriteLine("Reading URL :: " + URL);
-        //        // Or you can get the file content without saving it:
-        //        string htmlCode = client.DownloadString(URL);
-        //        //...
-        //        return htmlCode;  
-        //    }
-        //}
         private static string getStringFromUrl(String URL)
         {
             FirefoxDriver FX = new FirefoxDriver();

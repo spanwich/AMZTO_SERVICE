@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
+using System.Data.Entity.ModelConfiguration.Conventions;
 using System.Globalization;
 //using System.Web.Security;
 using System.Linq;
@@ -14,6 +15,8 @@ namespace AMZTO_LOCAL
         public datasourceContext()
             : base("DefaultConnection")
         {
+            Database.SetInitializer(new DropCreateDatabaseIfModelChanges<datasourceContext>());
+            //Database.SetInitializer<datasourceContext>(null);
         }
         public DbSet<itemDataSource> itemDataSource { get; set; }
         public DbSet<masterTemplates> masterTemplates { get; set; }
@@ -23,6 +26,13 @@ namespace AMZTO_LOCAL
         public DbSet<templateCollection> templateCollection { get; set; }
         public DbSet<orderUploadCollection> orderUploadCollection { get; set; }
         public DbSet<messageCollection> messageCollection { get; set; }
+        public DbSet<GlobalSetting> GlobalSettings { get; set; }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
+        }
+
     }
 
     [Table("itemDatasource")]
@@ -30,6 +40,9 @@ namespace AMZTO_LOCAL
     {
         [Key]
         public int dataSourceID { get; set; }
+        public string UserID { get; set; }
+        public int LinkID { get; set; }
+        public int FetchCount { get; set; }
         public String ProductID { get; set; }
         public String ProductName { get; set; }
         public String ProductLink { get; set; }
@@ -92,6 +105,7 @@ namespace AMZTO_LOCAL
         public String is_discontinued_by_manufacturer { get; set; }
         public String missing_keyset_reason { get; set; }
         public String delivery_schedule_group_id { get; set; }
+	public String merchant_shipping_group_name { get; set; }
         public String website_shipping_weight { get; set; }
         public String website_shipping_weight_unit_of_measure { get; set; }
         public String display_dimensions_unit_of_measure { get; set; }
@@ -341,6 +355,7 @@ namespace AMZTO_LOCAL
         public String is_discontinued_by_manufacturer { get; set; }
         public String missing_keyset_reason { get; set; }
         public String delivery_schedule_group_id { get; set; }
+	public String merchant_shipping_group_name { get; set; }
         public String website_shipping_weight { get; set; }
         public String website_shipping_weight_unit_of_measure { get; set; }
         public String display_dimensions_unit_of_measure { get; set; }
@@ -671,5 +686,15 @@ namespace AMZTO_LOCAL
         public string message_body { get; set; }
 
         public string attached_files { get; set; }
+    }
+
+    [Table("GlobalSetting")]
+    public class GlobalSetting
+    {
+        [Key]
+        public int Id { get; set; }
+        public string ConfigVar { get; set; }
+        public string ConfigVal { get; set; }
+        public Nullable<bool> IsActive { get; set; }
     }
 }
