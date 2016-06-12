@@ -13,6 +13,7 @@ namespace AMZTO_LOCAL
             FetchDbData FDX = new FetchDbData();
             Console.WriteLine("Start fetching data");
             string x = FDX.FetchAllLinks();
+            Console.WriteLine("Finish writing to sql, Please press enter. ");
             Console.ReadKey();
         }
     }

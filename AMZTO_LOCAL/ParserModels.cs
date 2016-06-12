@@ -71,7 +71,7 @@ namespace AMZTO_LOCAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Parse Products", "Error : " + ex.ToString());
+                Console.WriteLine("Parse Products Error : " + ex.ToString());
                 return null;
             }
 
@@ -131,7 +131,7 @@ namespace AMZTO_LOCAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Parse Child Node", "Error : " + ex.ToString());
+                Console.WriteLine("Parse Child Node Error : " + ex.ToString());
                 return null;
             }
         }
@@ -158,7 +158,7 @@ namespace AMZTO_LOCAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Read Product node", "Error : " + ex.ToString());
+                Console.WriteLine("Read Product node Error : " + ex.ToString());
             }
 
             parseProduct.getItemInformation(_item.ProductLink, _item);
@@ -213,7 +213,7 @@ namespace AMZTO_LOCAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Parse Item Informations", "Error : " + ex.ToString());
+                Console.WriteLine("Parse Item Informations Error : " + ex.ToString());
             }
         }
 
@@ -242,7 +242,7 @@ namespace AMZTO_LOCAL
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Parse Descriptions Error : " + ex.ToString());
+                    //Console.WriteLine("Parse Descriptions Error : " + ex.ToString());
                 }
             }
             return result;
@@ -253,7 +253,7 @@ namespace AMZTO_LOCAL
             itemSpecificationsSet itemSpecifications = new itemSpecificationsSet();
             if (!string.IsNullOrEmpty(html))
             {
-                Console.WriteLine("Parse Style&Size\n");
+                //Console.WriteLine("Parse Style&Size\n");
                 HtmlDocument document = new HtmlDocument();
                 document.LoadHtml(html);
                 try
@@ -298,13 +298,13 @@ namespace AMZTO_LOCAL
                             }
                             else
                             {
-                                itemSpecifications.MetalColor.Add(new itemVaraintsSet() { bigpic = "No Data", metalType = node.InnerText });
+                                itemSpecifications.MetalColor.Add(new itemVaraintsSet() { bigpic = "No Image", metalType = node.InnerText });
                             }
                         }
                     }
                     else
                     {
-                        itemSpecifications.MetalColor.Add(new itemVaraintsSet() { bigpic = "No Data", metalType = "No Data" });
+                        itemSpecifications.MetalColor.Add(new itemVaraintsSet() { bigpic = "No Image", metalType = "No Data" });
                     }
                 }
 
@@ -369,12 +369,20 @@ namespace AMZTO_LOCAL
             {
                 HtmlDocument document = new HtmlDocument();
                 document.LoadHtml(html);
-                Console.WriteLine("Parse Price\n");
+                //Console.WriteLine("Parse Price\n");
                 //color
                 try
                 {//*[@id="img"]
                     _item.OriginalPrice = document.DocumentNode.SelectSingleNode("//*[@id='j-sku-price']").InnerText;
-                    _item.SalesPrice = document.DocumentNode.SelectSingleNode("//*[@id='j-sku-discount-price']").InnerText;
+                    HtmlNode SalesPrice = document.DocumentNode.SelectSingleNode("//*[@id='j-sku-discount-price']");
+                    if (SalesPrice != null)
+                    {
+                        _item.SalesPrice = SalesPrice.InnerText;
+                    }
+                    else
+                    {
+                        _item.SalesPrice = _item.OriginalPrice;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -442,19 +450,6 @@ namespace AMZTO_LOCAL
         }
         #endregion
 
-        //private static string getStringFromUrl(String URL)
-        //{
-        //    Thread.Sleep(2000);
-        //    using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
-        //    {
-        //        //client.DownloadFile("URL", @"D:\localfile.html");
-        //        Console.WriteLine("Reading URL :: " + URL);
-        //        // Or you can get the file content without saving it:
-        //        string htmlCode = client.DownloadString(URL);
-        //        //...
-        //        return htmlCode;  
-        //    }
-        //}
         private static string getStringFromUrl(String URL)
         {
             FirefoxDriver FX = new FirefoxDriver();

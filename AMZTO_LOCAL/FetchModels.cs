@@ -16,6 +16,7 @@ namespace AMZTO_LOCAL
     public class FetchDbData
     {
         private datasourceContext db = new datasourceContext();
+        private UploadContext _db = new UploadContext();
 
         /// <summary>
         /// Do web crawling operation, get pure data then call PutDataSource to make a Datasource lists.
@@ -23,6 +24,7 @@ namespace AMZTO_LOCAL
         /// <returns></returns>
         public string FetchAllLinks()
         {
+            string opResult = "";
             List<itemDataSet> result = new List<itemDataSet>();
             //query all uploaded links
             using (var db = new UploadContext())
@@ -40,6 +42,7 @@ namespace AMZTO_LOCAL
                     {
                         paths = q.sourceLink.ToString();
                         result = parseProduct.getProduct(paths);
+                        opResult = PutDataScources(result);
                     }
                     catch (Exception ex)
                     {
@@ -49,7 +52,6 @@ namespace AMZTO_LOCAL
                 }
             }
             //put to datasources
-            string opResult = PutDataScources(result);
 
             return opResult;
         }
@@ -164,18 +166,32 @@ namespace AMZTO_LOCAL
                                                 LinkLists.ProductID = dr.ProductID;
                                                 LinkLists.ProductName = dr.ProductName;
                                                 LinkLists.Remarks = dr.ShopName;
+                                                LinkLists.UserID = "1";
+                                                LinkLists.LinkID = 1;
                                                 //Check if sourcesLinks Exists
                                                 var query = (from p in db.itemDataSource
                                                              where p.ProductLink == LinkLists.ProductLink &&
                                                                     p.ItemSize == LinkLists.ItemSize &&
                                                                     p.ItemColor == LinkLists.ItemColor &&
-                                                                    p.MetalType == LinkLists.MetalType
+                                                                    p.MetalType == LinkLists.MetalType &&
+                                                                    p.UserID == "1" &&
+                                                                    p.LinkID == 1
                                                              select p).ToList();
                                                 //foreach link - getproducts informations
                                                 if (!query.Any())
                                                 {
+                                                    List<itemDataSource> buffer = new List<itemDataSource>();
+                                                    if (LinkLists.ParentID == "Parents")
+                                                    {
+                                                        //remake parents column and change to child
+                                                        db.itemDataSource.Add(remakeParents(LinkLists));
+                                                        LinkLists.ParentID = "Child";
+                                                        LinkLists.ChildID = parent_links;
+                                                    }
                                                     db.itemDataSource.Add(LinkLists);
                                                     db.SaveChanges();
+                                                    Console.WriteLine("Writeline to SQL :: " + LinkLists.ProductLink);
+                                                    //_status = true;
                                                 }
                                             }
                                         }
@@ -183,17 +199,10 @@ namespace AMZTO_LOCAL
                                 }
                             }
                         }
-                        else
-                        {
-                            Console.WriteLine("NULL : " + dr.ProductName.ToString());
-                        }
-                        //if dr = null, do nothing.
                     }
                 }
                 catch (Exception ex)
                 {
-                    //saveLogFile.logging("FetchAllLinks error", ex.ToString());
-                    Console.WriteLine("Error : " + ex.ToString());
                     return ex.ToString();
                 }
 
@@ -201,6 +210,39 @@ namespace AMZTO_LOCAL
             }
             return "source is null, get child node error.";
         }
+
+        private itemDataSource remakeParents(itemDataSource LinkLists)
+        {
+            itemDataSource buffer = new itemDataSource();
+            buffer.ChildID = LinkLists.ChildID;
+            buffer.dataSourceID = LinkLists.dataSourceID;
+            buffer.Description = LinkLists.Description;
+            buffer.FetchCount = LinkLists.FetchCount;
+            buffer.ImageLink = LinkLists.ImageLink;
+            buffer.isStock = LinkLists.isStock;
+            buffer.ItemColor = LinkLists.ItemColor;
+            buffer.ItemSize = LinkLists.ItemSize;
+            buffer.MetalType = LinkLists.MetalType;
+            buffer.miscData = LinkLists.miscData;
+            buffer.OriginalPrice = LinkLists.OriginalPrice;
+            buffer.ParentID = LinkLists.ParentID;
+            buffer.ProductID = LinkLists.ProductID;
+            buffer.ProductLink = LinkLists.ProductLink;
+            buffer.ProductName = LinkLists.ProductName;
+            buffer.Remarks = LinkLists.Remarks;
+            buffer.SalesPrice = LinkLists.SalesPrice;
+            buffer.SmallImage1 = LinkLists.SmallImage1;
+            buffer.SmallImage2 = LinkLists.SmallImage2;
+            buffer.SmallImage3 = LinkLists.SmallImage3;
+            buffer.SmallImage4 = LinkLists.SmallImage4;
+            buffer.SmallImage5 = LinkLists.SmallImage5;
+            buffer.SmallImage6 = LinkLists.SmallImage6;
+            buffer.Source = LinkLists.Source;
+            buffer.UserID = LinkLists.UserID;
+
+            return buffer;
+        }
+
     }
 
     public class itemDescriptionsSet
