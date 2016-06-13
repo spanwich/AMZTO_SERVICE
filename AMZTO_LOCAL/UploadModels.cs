@@ -27,5 +27,6 @@ namespace AMZTO_LOCAL
         public String LinkShops { get; set; }
         public String sourceLink { get; set; }
         public String sourceType { get; set; }
+        public int status { get; set; }
     }
 }

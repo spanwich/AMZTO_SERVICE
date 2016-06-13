@@ -7,6 +7,9 @@ using System.Net;
 using System.IO;
 using System.Data;
 using HtmlAgilityPack;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support;
+
 
 namespace AMZTO_LOCAL
 {
@@ -24,6 +27,10 @@ namespace AMZTO_LOCAL
         /// <returns></returns>
         public string FetchAllLinks()
         {
+            ChromeDriver driver = new ChromeDriver();
+            driver.Manage().Timeouts().SetPageLoadTimeout(TimeSpan.FromSeconds(-1));
+            driver.Manage().Timeouts().ImplicitlyWait(TimeSpan.FromSeconds(10));
+            
             string opResult = "";
             List<itemDataSet> result = new List<itemDataSet>();
             //query all uploaded links
@@ -31,6 +38,7 @@ namespace AMZTO_LOCAL
             {
                 string paths;
                 var query = (from p in db.LinkDataSet
+                             where p.status == 1
                              orderby p.ShopName
                              select p).ToList();
 
@@ -40,9 +48,11 @@ namespace AMZTO_LOCAL
                 {
                     try
                     {
+                        parseProduct.driver = driver;
                         paths = q.sourceLink.ToString();
                         result = parseProduct.getProduct(paths);
                         opResult = PutDataScources(result);
+                        driver.Dispose();
                     }
                     catch (Exception ex)
                     {
@@ -52,7 +62,7 @@ namespace AMZTO_LOCAL
                 }
             }
             //put to datasources
-
+            
             return opResult;
         }
 
@@ -181,7 +191,8 @@ namespace AMZTO_LOCAL
                                                 if (!query.Any())
                                                 {
                                                     List<itemDataSource> buffer = new List<itemDataSource>();
-                                                    if (LinkLists.ParentID == "Parents")
+                                                    bool hasVariations = !(LinkLists.ItemSize.Contains("No ") && LinkLists.ItemColor.Contains("No ") && LinkLists.MetalType.Contains("No "));
+                                                    if (LinkLists.ParentID == "Parents" && hasVariations)
                                                     {
                                                         //remake parents column and change to child
                                                         db.itemDataSource.Add(remakeParents(LinkLists));

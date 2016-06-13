@@ -7,7 +7,7 @@ using System.Net;
 using System.Data;
 using System.Linq;
 using System.Threading;
-using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support;
 
 
@@ -16,6 +16,9 @@ namespace AMZTO_LOCAL
     public class parseProduct
     {
         #region declare Class Variables
+
+        public static ChromeDriver driver;
+
         private String shtml;
 
         public static bool isStop = false;
@@ -67,6 +70,7 @@ namespace AMZTO_LOCAL
                     return null;
                 }
                 max_page = Convert.ToInt32(parser.getMaxPage());
+                Console.WriteLine("Product link " + URI + " Contains "+ max_page + " links");
                 result = parser.parseChildNode(URI);
             }
             catch (Exception ex)
@@ -106,10 +110,15 @@ namespace AMZTO_LOCAL
                 HtmlNodeCollection productlist = document.DocumentNode.SelectNodes("//ul[@class='items-list util-clearfix']/li");
                 if (productlist == null)
                 {
+                    Console.WriteLine("ProductLink for " + URI + " is null, Exit.");
                     return items;
                 }
+                int ProductLinkCount = productlist.Count;
+                int currentProduct = 1;
+                Console.WriteLine("ProductLink for " + URI + " is " + ProductLinkCount + ".");
                 foreach (HtmlNode node in productlist)
                 {
+                    Console.WriteLine("parsing ProductLink number " + currentProduct);
                     itemDataSet item = ReadProductNode(node);
                     if (item.isStock == false)
                     {
@@ -125,6 +134,7 @@ namespace AMZTO_LOCAL
                                  select p).FirstOrDefault();
                     item.ShopName = query.ShopName;
                     items.Add(item);
+                    currentProduct++;
                 }
 
                 return items;
@@ -221,30 +231,10 @@ namespace AMZTO_LOCAL
         {
             //0 = Features, 1 = spec
             List<itemDescriptionsSet> result = new List<itemDescriptionsSet>();
-            if (!string.IsNullOrEmpty(html))
-            {
-                HtmlDocument document = new HtmlDocument();
-                document.LoadHtml(html);
-                //Features
-                try
-                {
-                    HtmlNodeCollection itemDescriptionsNode = document.DocumentNode.SelectNodes("//dl");
-                    string dt, dd;
-                    foreach (HtmlNode node in itemDescriptionsNode)
-                    {
-                        itemDescriptionsSet itemResult = new itemDescriptionsSet();
-                        dt = node.SelectSingleNode("dt").InnerText;
-                        dd = node.SelectSingleNode("dd").InnerText;
-                        itemResult.descType = dt;
-                        itemResult.descValue = dd;
-                        result.Add(itemResult);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    //Console.WriteLine("Parse Descriptions Error : " + ex.ToString());
-                }
-            }
+            itemDescriptionsSet itemResult = new itemDescriptionsSet();
+            itemResult.descType = "";
+            itemResult.descValue = "";
+            result.Add(itemResult);          
             return result;
         }
 
@@ -452,11 +442,29 @@ namespace AMZTO_LOCAL
 
         private static string getStringFromUrl(String URL)
         {
-            FirefoxDriver FX = new FirefoxDriver();
-            FX.Navigate().GoToUrl(URL);
-            Thread.Sleep(5000);
-            string htmlCode = FX.PageSource;
-            FX.Dispose();
+            string htmlCode = "";
+            for (int attempts = 0; attempts < 5; attempts++)
+            // if you really want to keep going until it works, use   for(;;)
+            {
+                try
+                {
+                    driver.Navigate().GoToUrl(URL);
+                    Thread.Sleep(5000);
+                    htmlCode = driver.PageSource;
+                }
+                catch (Exception e)
+                {
+                    //reset chrome driver
+                    driver.Dispose();
+                    driver = new ChromeDriver();
+                    driver.Manage().Timeouts().SetPageLoadTimeout(TimeSpan.FromSeconds(-1));
+                    driver.Manage().Timeouts().ImplicitlyWait(TimeSpan.FromSeconds(10));
+                    Console.WriteLine("Get html exception with " + e.ToString());
+                    Console.WriteLine("\n Reset chromeDriver");
+                }
+                Thread.Sleep(50); // Possibly a good idea to pause here, explanation below
+            }
+            //FX.Dispose();
             return htmlCode;
         }
     }
