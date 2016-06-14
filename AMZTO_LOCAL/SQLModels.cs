@@ -27,6 +27,7 @@ namespace AMZTO_LOCAL
         public DbSet<orderUploadCollection> orderUploadCollection { get; set; }
         public DbSet<messageCollection> messageCollection { get; set; }
         public DbSet<GlobalSetting> GlobalSettings { get; set; }
+        public DbSet<ProductLog> ProductLog { get; set; }
 
         //protected override void OnModelCreating(DbModelBuilder modelBuilder)
         //{
@@ -687,6 +688,19 @@ namespace AMZTO_LOCAL
 
         public string attached_files { get; set; }
     }
+    [Table("ProductLog")]
+    public class ProductLog
+    {
+        public int ID { get; set; }
+        public int LinkID { get; set; }
+        public int FetchCount { get; set; }
+        public string ProductName { get; set; }
+        public string ProductLink { get; set; }
+        public int Status { get; set; }
+        public string ErrorMessage { get; set; }
+        public DateTime CreatedOn { get; set; }
+    }
+
 
     [Table("GlobalSetting")]
     public class GlobalSetting

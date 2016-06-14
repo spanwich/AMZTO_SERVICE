@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support;
-
+using System.Diagnostics;
 
 namespace AMZTO_LOCAL
 {
@@ -70,7 +70,7 @@ namespace AMZTO_LOCAL
                     return null;
                 }
                 max_page = Convert.ToInt32(parser.getMaxPage());
-                Console.WriteLine("Product link " + URI + " Contains "+ max_page + " links");
+                Console.WriteLine("Product link " + URI + " Contains "+ max_page + " pages");
                 result = parser.parseChildNode(URI);
             }
             catch (Exception ex)
@@ -116,9 +116,10 @@ namespace AMZTO_LOCAL
                 int ProductLinkCount = productlist.Count;
                 int currentProduct = 1;
                 Console.WriteLine("ProductLink for " + URI + " is " + ProductLinkCount + ".");
+                Console.WriteLine("parsing ProductLink number ");
                 foreach (HtmlNode node in productlist)
                 {
-                    Console.WriteLine("parsing ProductLink number " + currentProduct);
+                    Console.Write("\r{0}   ", currentProduct);
                     itemDataSet item = ReadProductNode(node);
                     if (item.isStock == false)
                     {
@@ -451,20 +452,40 @@ namespace AMZTO_LOCAL
                     driver.Navigate().GoToUrl(URL);
                     Thread.Sleep(5000);
                     htmlCode = driver.PageSource;
+                    break;
                 }
                 catch (Exception e)
                 {
                     //reset chrome driver
                     driver.Dispose();
+                    Process[] prs = Process.GetProcesses();
+                    foreach (Process pr in prs)
+                    {
+                        if (pr.ProcessName == "chrome")
+                        {
+                            pr.Kill();
+                        }
+                    }
+                    //End my torment
                     driver = new ChromeDriver();
                     driver.Manage().Timeouts().SetPageLoadTimeout(TimeSpan.FromSeconds(-1));
                     driver.Manage().Timeouts().ImplicitlyWait(TimeSpan.FromSeconds(10));
                     Console.WriteLine("Get html exception with " + e.ToString());
                     Console.WriteLine("\n Reset chromeDriver");
+                    //save log
+                    datasourceContext dx = new datasourceContext();
+                    ProductLog logError = new ProductLog();
+                    logError.ProductLink = URL;
+                    logError.ErrorMessage = e.ToString();
+                    logError.CreatedOn = DateTime.Now;
+                    logError.LinkID = 1;
+                    logError.FetchCount = 1;
+                    logError.Status = 5;
+                    dx.ProductLog.Add(logError);
+                    dx.SaveChanges();
                 }
                 Thread.Sleep(50); // Possibly a good idea to pause here, explanation below
             }
-            //FX.Dispose();
             return htmlCode;
         }
     }

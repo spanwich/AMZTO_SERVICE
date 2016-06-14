@@ -190,19 +190,36 @@ namespace AMZTO_LOCAL
                                                 //foreach link - getproducts informations
                                                 if (!query.Any())
                                                 {
-                                                    List<itemDataSource> buffer = new List<itemDataSource>();
-                                                    bool hasVariations = !(LinkLists.ItemSize.Contains("No ") && LinkLists.ItemColor.Contains("No ") && LinkLists.MetalType.Contains("No "));
-                                                    if (LinkLists.ParentID == "Parents" && hasVariations)
+                                                    try
                                                     {
-                                                        //remake parents column and change to child
-                                                        db.itemDataSource.Add(remakeParents(LinkLists));
-                                                        LinkLists.ParentID = "Child";
-                                                        LinkLists.ChildID = parent_links;
+                                                        List<itemDataSource> buffer = new List<itemDataSource>();
+                                                        bool hasVariations = !(LinkLists.ItemSize.Contains("No ") && LinkLists.ItemColor.Contains("No ") && LinkLists.MetalType.Contains("No "));
+                                                        if (LinkLists.ParentID == "Parents" && hasVariations)
+                                                        {
+                                                            //remake parents column and change to child
+                                                            db.itemDataSource.Add(remakeParents(LinkLists));
+                                                            LinkLists.ParentID = "Child";
+                                                            LinkLists.ChildID = parent_links;
+                                                        }
+                                                        db.itemDataSource.Add(LinkLists);
+                                                        db.SaveChanges();
+                                                        Console.WriteLine("Writeline to SQL :: " + LinkLists.ProductLink);
+                                                        //_status = true;
                                                     }
-                                                    db.itemDataSource.Add(LinkLists);
-                                                    db.SaveChanges();
-                                                    Console.WriteLine("Writeline to SQL :: " + LinkLists.ProductLink);
-                                                    //_status = true;
+                                                    catch (Exception innerEx)
+                                                    {
+                                                        //save log
+                                                        ProductLog logError = new ProductLog();
+                                                        logError.ProductLink = source[0].Source;
+                                                        logError.ErrorMessage = innerEx.ToString();
+                                                        logError.CreatedOn = DateTime.Now;
+                                                        logError.LinkID = 1;
+                                                        logError.FetchCount = 1;
+                                                        logError.Status = 5;
+                                                        db.ProductLog.Add(logError);
+                                                        db.SaveChanges();
+                                                        Console.WriteLine("Error write product link " + LinkLists.ProductLink);
+                                                    }
                                                 }
                                             }
                                         }
@@ -214,9 +231,31 @@ namespace AMZTO_LOCAL
                 }
                 catch (Exception ex)
                 {
+                    //save log
+                    ProductLog logError = new ProductLog();
+                    logError.ProductLink = source[0].Source;
+                    logError.ErrorMessage = ex.ToString();
+                    logError.CreatedOn = DateTime.Now;
+                    logError.LinkID = 1;
+                    logError.FetchCount = 1;
+                    logError.Status = 5;
+                    db.ProductLog.Add(logError);
+                    db.SaveChanges();
                     return ex.ToString();
                 }
 
+                //save log
+                datasourceContext dx = new datasourceContext();
+                ProductLog logSuccess = new ProductLog();
+                logSuccess.ProductLink = source[0].Source;
+                logSuccess.ErrorMessage = "Successfully Write to SQL for source link = '" + source[0].Source + "'\n";
+                logSuccess.CreatedOn = DateTime.Now;
+                logSuccess.LinkID = 1;
+                logSuccess.FetchCount = 1;
+                logSuccess.Status = 5;
+                dx.ProductLog.Add(logSuccess);
+                dx.SaveChanges();
+                Console.WriteLine("Successfully Write to SQL for source link = '" + source[0].Source + "'\n");
                 return "0";
             }
             return "source is null, get child node error.";
